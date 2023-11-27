@@ -1,20 +1,26 @@
 #!/bin/bash
 
-# git repository init script, version 0.1
+# git repository init script, version 0.1.1
 # (c) Alexander Kharitonov <askh@askh.ru>, 2023
+# License: GPL 3
+
+set -uo pipefail
 
 # The reposities directory
-REPO_BASE_DIR=/srv/git
+readonly REPO_BASE_DIR=/srv/git
 
 # The regular expression for validation the repository name
-REPO_NAME_REGEX="^[0-9a-zA-Z]([0-9a-zA-Z._-]*[0-9a-zA-Z_-])?$"
+readonly REPO_NAME_REGEX="^[0-9a-zA-Z]([0-9a-zA-Z._-]*[0-9a-zA-Z_-])?$"
+
+# The minimum length of the repository name
+declare -ri REPO_NAME_MIN_LEN=1
 
 # The maximum length of the repository name
-REPO_NAME_MAX_LEN=64
+declare -ri REPO_NAME_MAX_LEN=64
 
 function error_exit()
 {
-  error_message=$1
+  local error_message=$1
   echo "ERROR: $error_message" >&2
   exit 1
 }
@@ -28,9 +34,15 @@ fi
 
 repo_name="$1"
 
+declare -i repo_name_len
 repo_name_len=$(echo -n "$repo_name" | wc -c)
 
-if (( $repo_name_len > $REPO_NAME_MAX_LEN ))
+if (( repo_name_len < REPO_NAME_MIN_LEN ))
+then
+    error_exit "The repository name is too short."
+fi
+
+if (( repo_name_len > REPO_NAME_MAX_LEN ))
 then
     error_exit "The repository name is too long."
 fi
